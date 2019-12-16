@@ -38,7 +38,8 @@ RUN cd /tmp 											&& \
 	mv wordpress /var/www/html/wordpress
 	
 #Setup nginx
-COPY srcs/nginx.conf 		/etc/nginx/nginx.conf
+COPY srcs/default.conf 		/etc/nginx/sites-available/default
+RUN sed -i "s/autoindex off/autoindex ${AUTOINDEX}/" /etc/nginx/sites-available/default
 
 #Setup phpmyadmin
 COPY srcs/phpmyadmin-config.php /usr/share/phpmyadmin/config.inc.php
