@@ -53,7 +53,15 @@ RUN service mysql start 							&& \
 	mysql -u root -e "GRANT ALL ON phpmyadmin.* TO 'pma'@'localhost' IDENTIFIED BY 'ilmefautdeleau'" && \
 	mysql -u root -e "GRANT ALL ON *.* TO 'bob'@'localhost' IDENTIFIED BY '123'"
 
-#RUN sed -i "s/autoindex off/autoindex ${AUTOINDEX}/" /etc/nginx/nginx.conf
+#Setup nginx
+RUN sed -i "s/autoindex off/autoindex ${AUTOINDEX}/" /etc/nginx/nginx.conf
+
+#CLEANING STUFF
+RUN rm /var/www/html/index.nginx-debian.html
+
+#SSL
+COPY srcs/ssl-cert.key /etc/ssl/private/nginx-cert.key
+COPY srcs/ssl-cert.crt /etc/ssl/certs/nginx-cert.crt
 
 CMD service nginx start			&& \
 	service mysql start 		&& \
