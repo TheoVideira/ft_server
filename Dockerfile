@@ -38,27 +38,25 @@ RUN cd /tmp 											&& \
 	mv wordpress /var/www/html/wordpress
 	
 #Setup nginx
-COPY srcs/default.conf 		/etc/nginx/sites-available/default
-RUN sed -i "s/autoindex off/autoindex ${AUTOINDEX}/" /etc/nginx/sites-available/default
+COPY srcs/localhost.conf 		/etc/nginx/sites-available/localhost
+RUN sed -i "s/autoindex off/autoindex ${AUTOINDEX}/" /etc/nginx/sites-available/localhost
+RUN ln -s /etc/nginx/sites-available/localhost /etc/nginx/sites-enabled/localhost
 
 #Setup phpmyadmin
 COPY srcs/phpmyadmin-config.php /usr/share/phpmyadmin/config.inc.php
 
 #Setup wordpress
 COPY srcs/wp-config.php /var/www/html/wordpress
+COPY srcs/wordpress_db.sql /tmp
 
 #SOME PASSWORD IN CLEAR VERY NICE
 RUN service mysql start 							&& \
 	mysql -u root -e "CREATE DATABASE wordpress_db" && \
 	mysql -u root -e "GRANT ALL ON wordpress_db.* TO 'wordpress_user'@'localhost' IDENTIFIED BY 'moncorpsestenpleinecroissance' WITH GRANT OPTION" && \
-	mysql -u root -e "GRANT ALL ON phpmyadmin.* TO 'pma'@'localhost' IDENTIFIED BY 'ilmefautdeleau'" && \
-	mysql -u root -e "GRANT ALL ON *.* TO 'bob'@'localhost' IDENTIFIED BY '123'"
+	mysql -u root -e "GRANT ALL ON phpmyadmin.* TO 'pma'@'localhost' IDENTIFIED BY 'ilmefautdeleau'" 	&& \
+	mysql -u root -e "GRANT ALL ON *.* TO 'bob'@'localhost' IDENTIFIED BY '123'" 						&& \
+	mysql wordpress_db < /tmp/wordpress_db.sql
 
-#Setup nginx
-RUN sed -i "s/autoindex off/autoindex ${AUTOINDEX}/" /etc/nginx/nginx.conf
-
-#CLEANING STUFF
-RUN rm /var/www/html/index.nginx-debian.html
 
 #SSL
 COPY srcs/ssl-cert.key /etc/ssl/private/nginx-cert.key
@@ -68,6 +66,7 @@ CMD service nginx start			&& \
 	service mysql start 		&& \
 	service php7.3-fpm start	&& \
 	tail -f /dev/null
+
 
 
 EXPOSE 80 443
